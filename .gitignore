@@ -1,0 +1,68 @@
+# Entorno virtual de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Base de datos SQLite
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Capturas de pantalla
+screenshots/
+
+# Logs
+*.log
+logs/
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Docker
+.docker/
+
+# Archivos de prueba
+.test.py
+*_test.py
+
+# Archivos de salida
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
