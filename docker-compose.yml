@@ -18,6 +18,9 @@ services:
       CHROME_BINARY: /usr/bin/chromium
       HEADLESS_MODE: ${HEADLESS_MODE:-True}
       ENABLE_SELENIUM_FALLBACK: ${ENABLE_SELENIUM_FALLBACK:-False}
+      ENABLE_BROWSER_AGENT: ${ENABLE_BROWSER_AGENT:-True}
+      MISTRAL_BROWSER_AGENT_URL: ${MISTRAL_BROWSER_AGENT_URL:-http://mistral_backend:6011/api/browser-agent}
+      MISTRAL_BROWSER_AGENT_TIMEOUT: ${MISTRAL_BROWSER_AGENT_TIMEOUT:-180}
     networks:
       - default
       - traefik
@@ -28,7 +31,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik"
-      - "traefik.http.routers.mails.rule=Host(`correos.juanbejarano.dedyn.io`)"
+      - "traefik.http.routers.mails.rule=(Host(`correos.juanbejarano.dedyn.io`) || Host(`correo.juanbejarano.dedyn.io`))"
       - "traefik.http.routers.mails.entrypoints=websecure"
       - "traefik.http.routers.mails.tls.certresolver=letsencrypt"
       - "traefik.http.services.mails.loadbalancer.server.port=8000"

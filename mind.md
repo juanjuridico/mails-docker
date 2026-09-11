@@ -82,3 +82,10 @@ mails-docker/
 - La navegación pública de TempMailG continúa pudiendo responder con Cloudflare Turnstile. No se intenta evadir ni resolver ese desafío automáticamente.
 - Para producción se usa la API oficial de usuario de TempMailG (`TEMPMAILG_API_BASE_URL` + `TEMPMAILG_API_KEY`), que evita depender del HTML protegido. La documentación actual exige Bearer API key y host de API de usuario dedicado.
 - La interfaz web está publicada en `https://correos.juanbejarano.dedyn.io` mediante Traefik.
+
+## Integración Browser Agent (11/09/2026)
+- Sin API key de TempMailG, `tempmailg_service.py` usa `mails-docker -> mistral-docker /api/browser-agent -> browser-docker`.
+- browser-docker mantiene Chromium gráfico persistente, xdotool, OCR y memoria de coordenadas.
+- No se usa Selenium para esta ruta.
+- Si TempMailG devuelve una verificación anti-bot que no se completa, el agente informa el bloqueo y no inventa un correo.
+- Se mantienen API oficial y fallback Selenium como rutas separadas.
