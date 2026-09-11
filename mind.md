@@ -75,3 +75,10 @@ mails-docker/
 - Selectores de TempMailG pueden cambiar. Validar periódicamente.
 - Usar proxies en producción para evitar bloqueos.
 - Preinstalar ChromeDriver en entornos sin internet.
+
+## Integración VPN + TempMailG (11/09/2026)
+- `mails-docker` se conecta a la red externa `vpn-tunnels` de `vpn-docker`.
+- `entrypoint.sh` solicita automáticamente un túnel VPNGate a `vpn_api` y exporta su proxy HTTP para las peticiones salientes de la aplicación.
+- La navegación pública de TempMailG continúa pudiendo responder con Cloudflare Turnstile. No se intenta evadir ni resolver ese desafío automáticamente.
+- Para producción se usa la API oficial de usuario de TempMailG (`TEMPMAILG_API_BASE_URL` + `TEMPMAILG_API_KEY`), que evita depender del HTML protegido. La documentación actual exige Bearer API key y host de API de usuario dedicado.
+- La interfaz web está publicada en `https://correos.juanbejarano.dedyn.io` mediante Traefik.

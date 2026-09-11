@@ -7,12 +7,34 @@ services:
       - ./screenshots:/app/screenshots
     environment:
       TEMPMAILG_URL: ${TEMPMAILG_URL:-https://tempmailg.com/es}
+      TEMPMAILG_API_BASE_URL: ${TEMPMAILG_API_BASE_URL:-https://v1.tempmailg.com/api}
+      TEMPMAILG_API_KEY: ${TEMPMAILG_API_KEY:-}
+      TEMPMAILG_API_TIMEOUT: ${TEMPMAILG_API_TIMEOUT:-30}
       PROXY: ${PROXY:-}
+      VPN_API_URL: ${VPN_API_URL:-http://vpn_api:6004}
+      VPN_COUNTRY: ${VPN_COUNTRY:-JP}
       DB_PATH: /app/data/emails.db
       CHROME_DRIVER_PATH: /usr/bin/chromedriver
       CHROME_BINARY: /usr/bin/chromium
       HEADLESS_MODE: ${HEADLESS_MODE:-True}
-    stdin_open: true
-    tty: true
-    command: ["sleep", "infinity"]
+      ENABLE_SELENIUM_FALLBACK: ${ENABLE_SELENIUM_FALLBACK:-False}
+    networks:
+      - default
+      - traefik
+      - vpn-tunnels
+    entrypoint: ["/app/entrypoint.sh"]
+    command: ["python", "web.py"]
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.mails.rule=Host(`correos.juanbejarano.dedyn.io`)"
+      - "traefik.http.routers.mails.entrypoints=websecure"
+      - "traefik.http.routers.mails.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mails.loadbalancer.server.port=8000"
+
+networks:
+  traefik:
+    external: true
+  vpn-tunnels:
+    external: true

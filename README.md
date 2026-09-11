@@ -168,3 +168,25 @@ Las contribuciones son bienvenidas. Abre un *issue* o envía un *pull request* p
 ## 📜 Licencia
 
 Este proyecto está bajo la **MIT License**. Ver [LICENSE](LICENSE) para más detalles.
+
+## Interfaz web y VPN
+
+La aplicación web queda publicada en `https://correos.juanbejarano.dedyn.io`.
+Al iniciar, solicita un túnel a `vpn-docker` mediante `vpn_api` y conecta las
+peticiones salientes de TempMailG al proxy HTTP del túnel en la red externa
+`vpn-tunnels`.
+
+### TempMailG y Cloudflare
+
+La página pública de TempMailG puede presentar Cloudflare Turnstile. El
+proyecto **no intenta evadir ese desafío**. En su lugar, usa la API oficial de
+usuario de TempMailG como proveedor principal, que requiere:
+
+```env
+TEMPMAILG_API_BASE_URL=https://v1.tempmailg.com/api
+TEMPMAILG_API_KEY=TU_API_KEY
+```
+
+La API se autentica con Bearer token. Sin `TEMPMAILG_API_KEY`, la interfaz
+web seguirá disponible pero la creación/lectura de buzones devolverá un error
+claro indicando que falta configurar la API.
