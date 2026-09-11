@@ -1,5 +1,4 @@
 #!/bin/bash
-# Script para ejecutar pruebas localmente
-
-echo "Ejecutando pruebas unitarias..."
-pytest tests/ -v --tb=short
+set -e
+echo "Ejecutando pruebas..."
+python -m pytest tests/ -v --tb=short

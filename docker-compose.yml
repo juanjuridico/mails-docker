@@ -1,18 +1,18 @@
-version: '3.8'
-
 services:
   app:
     build: .
     container_name: mails-docker-app
     volumes:
       - ./data:/app/data
+      - ./screenshots:/app/screenshots
     environment:
-      - TEMPMAILG_URL=https://tempmailg.com/es
-      - DB_PATH=/app/data/emails.db
-      - CHROME_DRIVER_PATH=/usr/local/bin/chromedriver
+      TEMPMAILG_URL: ${TEMPMAILG_URL:-https://tempmailg.com/es}
+      PROXY: ${PROXY:-}
+      DB_PATH: /app/data/emails.db
+      CHROME_DRIVER_PATH: /usr/bin/chromedriver
+      CHROME_BINARY: /usr/bin/chromium
+      HEADLESS_MODE: ${HEADLESS_MODE:-True}
     stdin_open: true
     tty: true
+    command: ["sleep", "infinity"]
     restart: unless-stopped
-
-volumes:
-  data:

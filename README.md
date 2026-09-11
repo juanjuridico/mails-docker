@@ -10,7 +10,7 @@ Un sistema **Dockerizado** para generar y gestionar correos electrónicos tempor
 - ✅ **Persistencia** de correos en base de datos SQLite.
 - ✅ **Interfaz de línea de comandos (CLI)** con múltiples comandos.
 - ✅ **Dockerizado** para fácil despliegue.
-- ✅ **Pruebas automatizadas** (40 pruebas, 100% éxito).
+- ✅ **Pruebas automatizadas** (11 pruebas, 100% éxito).
 - ✅ **Documentación completa** (mind.md, specs.md, tasks.md, etc.).
 
 ---
@@ -39,8 +39,8 @@ nano .env
 
 ### 3. Construir y levantar los contenedores
 ```bash
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
 ```
 
 ### 4. Usar la CLI
@@ -126,6 +126,26 @@ DB_PATH=/app/data/emails.db
 ```
 
 ---
+
+## 🧪 Estado verificado
+
+- 11 pruebas automatizadas: **11/11 pasadas**.
+- Imagen Docker construida correctamente en la arquitectura del servidor.
+- Chromium + ChromeDriver se instalan desde los paquetes Debian compatibles con ARM64/AMD64.
+- Smoke test real de Selenium contra `https://example.com`: correcto.
+- El contenedor permanece activo y la CLI se ejecuta mediante `docker exec`.
+
+## ⚠️ Dependencia externa: TempMailG
+
+La generación real fue probada el 11/09/2026. TempMailG actualmente protege
+`/gmail-temp-mail` con Cloudflare Turnstile desde este servidor, por lo que
+Selenium recibe una página `Just a moment...` y no puede obtener el alias.
+El código conserva manejo de reintentos/capturas y devuelve un fallo limpio;
+no se simula una dirección inexistente.
+
+TempMailG también documenta actualmente una API de usuario que requiere una
+API key y un host dedicado. Si se dispone de una key, conviene implementar el
+provider API como backend preferente y dejar Selenium como fallback.
 
 ## 📌 Notas
 

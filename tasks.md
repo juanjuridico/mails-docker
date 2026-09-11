@@ -1,6 +1,6 @@
 # ✅ tasks.md - Tareas del Proyecto mails-docker
 
-**Última actualización:** 10 de septiembre de 2026
+**Última actualización:** 11 de septiembre de 2026
 
 ---
 
@@ -34,14 +34,15 @@
 | ID | Tarea | Estado |
 |----|-------|--------|
 | 15 | Crear tests/ | ✅ Completado |
-| 16 | Probar módulos | ✅ 40/40 pruebas pasadas |
+| 16 | Probar módulos | ✅ 11/11 pruebas pasadas |
 
 ## 🚀 Tareas de Despliegue
 | ID | Tarea | Estado |
 |----|-------|--------|
 | 17 | Crear deploy_to_production.sh | ✅ Completado |
 | 18 | Crear push_to_github.sh | ✅ Completado |
-| 19 | Subir a GitHub | 🔄 En progreso |
+| 19 | Subir a GitHub | ✅ Completado |
+| 20 | Verificar generación real TempMailG | ⚠️ Bloqueado por Cloudflare Turnstile externo |
 
 ---
 
@@ -49,4 +50,4 @@
 - ✅ Fase 1: Documentación
 - ✅ Fase 2: Desarrollo
 - ✅ Fase 3: Pruebas
-- 🔄 Fase 4: Despliegue
+- ✅ Fase 4: Despliegue

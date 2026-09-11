@@ -30,8 +30,10 @@ class EmailService:
         if provider not in self.providers:
             return None
         try:
-            generate_func = self.providers[provider]["generate"]
-            return generate_func(**kwargs)
+            # Resolver el callable en tiempo de ejecución permite inyectar/mokear
+            # proveedores sin conservar referencias obsoletas.
+            generate_func = generate_tempmailg_email if provider == "tempmailg" else None
+            return generate_func(**kwargs) if generate_func else None
         except Exception:
             return None
 
@@ -40,8 +42,8 @@ class EmailService:
         if provider not in self.providers:
             return []
         try:
-            generate_emails_func = self.providers[provider]["generate_emails"]
-            return generate_emails_func(count=count, **kwargs)
+            generate_emails_func = generate_tempmailg_emails if provider == "tempmailg" else None
+            return generate_emails_func(count=count, **kwargs) if generate_emails_func else []
         except Exception:
             return []
 
@@ -50,8 +52,8 @@ class EmailService:
         if provider not in self.providers:
             return []
         try:
-            get_emails_func = self.providers[provider]["get_emails"]
-            return get_emails_func(email, **kwargs)
+            get_emails_func = get_tempmailg_emails if provider == "tempmailg" else None
+            return get_emails_func(email, **kwargs) if get_emails_func else []
         except Exception:
             return []
 
@@ -60,8 +62,8 @@ class EmailService:
         if provider not in self.providers:
             return False
         try:
-            delete_func = self.providers[provider]["delete"]
-            return delete_func(email, **kwargs)
+            delete_func = delete_tempmailg_email if provider == "tempmailg" else None
+            return delete_func(email, **kwargs) if delete_func else False
         except Exception:
             return False
 
@@ -70,8 +72,9 @@ class EmailService:
         if provider not in self.providers:
             return
         try:
-            sync_func = self.providers[provider]["sync"]
-            sync_func(**kwargs)
+            sync_func = sync_tempmailg_emails if provider == "tempmailg" else None
+            if sync_func:
+                sync_func(**kwargs)
         except Exception:
             pass
 

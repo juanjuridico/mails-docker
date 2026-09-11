@@ -7,33 +7,69 @@ import os
 from typing import List, Dict, Optional
 
 # Configuración
-DB_PATH = os.getenv("DB_PATH", "/app/data/emails.db")
-
-# Asegurar que el directorio de la base de datos exista
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+def _db_path() -> str:
+    """Obtiene la ruta actual para permitir override por entorno/tests."""
+    path = os.getenv("DB_PATH", "/app/data/emails.db")
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    return path
 
 
 def init_db():
-    """Inicializa la base de datos y crea las tablas."""
-    with sqlite3.connect(DB_PATH) as conn:
+    """Inicializa la DB y migra el esquema legado si es necesario."""
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS emails (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL UNIQUE,
-                provider TEXT NOT NULL,
-                domain TEXT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                expires_at DATETIME,
-                is_active BOOLEAN DEFAULT 1
-            )
-        """)
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='emails'")
+        exists = cursor.fetchone() is not None
+        if not exists:
+            cursor.execute("""
+                CREATE TABLE emails (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT NOT NULL UNIQUE,
+                    provider TEXT NOT NULL,
+                    domain TEXT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    expires_at DATETIME,
+                    is_active BOOLEAN DEFAULT 1
+                )
+            """)
+        else:
+            columns = {row[1] for row in cursor.execute("PRAGMA table_info(emails)")}
+            if "email" not in columns:
+                # Esquema anterior: id, address, created_at, is_active.
+                # Migramos conservando los correos existentes.
+                if "address" in columns:
+                    cursor.execute("ALTER TABLE emails RENAME TO emails_legacy")
+                    cursor.execute("""
+                        CREATE TABLE emails (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            email TEXT NOT NULL UNIQUE,
+                            provider TEXT NOT NULL,
+                            domain TEXT NOT NULL,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            expires_at DATETIME,
+                            is_active BOOLEAN DEFAULT 1
+                        )
+                    """)
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO emails
+                            (id, email, provider, domain, created_at, is_active)
+                        SELECT id, address, 'tempmailg', '@gmail.com', created_at, is_active
+                        FROM emails_legacy
+                        WHERE address IS NOT NULL AND address <> ''
+                    """)
+                    cursor.execute("DROP TABLE emails_legacy")
+                else:
+                    raise RuntimeError(
+                        f"Esquema de emails incompatible; columnas encontradas: {sorted(columns)}"
+                    )
         conn.commit()
 
 
 def add_email(email: str, provider: str, domain: str):
     """Añade un correo a la base de datos."""
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
         cursor.execute("INSERT INTO emails (email, provider, domain) VALUES (?, ?, ?)", (email, provider, domain))
         conn.commit()
@@ -41,7 +77,7 @@ def add_email(email: str, provider: str, domain: str):
 
 def get_emails(provider: Optional[str] = None, is_active: bool = True) -> List[Dict]:
     """Obtiene una lista de correos."""
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
         if provider:
             cursor.execute("""
@@ -69,7 +105,7 @@ def get_emails(provider: Optional[str] = None, is_active: bool = True) -> List[D
 
 def get_email_by_email(email: str) -> Optional[Dict]:
     """Obtiene un correo específico."""
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, email, provider, domain, created_at, is_active FROM emails WHERE email = ?", (email,))
         row = cursor.fetchone()
@@ -87,7 +123,7 @@ def get_email_by_email(email: str) -> Optional[Dict]:
 
 def delete_email(email: str) -> bool:
     """Elimina un correo de la base de datos."""
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM emails WHERE email = ?", (email,))
         conn.commit()
@@ -96,7 +132,7 @@ def delete_email(email: str) -> bool:
 
 def mark_as_inactive(email: str) -> bool:
     """Marca un correo como inactivo."""
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE emails SET is_active = 0 WHERE email = ?", (email,))
         conn.commit()
@@ -105,7 +141,7 @@ def mark_as_inactive(email: str) -> bool:
 
 def update_email_expiry(email: str, expires_at: str) -> bool:
     """Actualiza la fecha de expiración de un correo."""
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(_db_path()) as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE emails SET expires_at = ? WHERE email = ?", (expires_at, email))
         conn.commit()
