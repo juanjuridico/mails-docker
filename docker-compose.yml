@@ -13,6 +13,7 @@ services:
       PROXY: ${PROXY:-}
       VPN_API_URL: ${VPN_API_URL:-http://vpn_api:6004}
       VPN_COUNTRY: ${VPN_COUNTRY:-JP}
+      VPN_ENABLED: ${VPN_ENABLED:-false}
       DB_PATH: /app/data/emails.db
       CHROME_DRIVER_PATH: /usr/bin/chromedriver
       CHROME_BINARY: /usr/bin/chromium
