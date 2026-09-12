@@ -132,38 +132,39 @@ def _detail(message_id):
 
 
 def messages(email):
+    """Return inbox summaries only; full HTML is fetched on demand."""
     out = []
     for item in _list(email):
         if not isinstance(item, dict):
             continue
-        if item.get("locked"):
-            out.append({
-                "id": item.get("id"),
-                "subject": item.get("subject", ""),
-                "from": item.get("from", ""),
-                "from_email": item.get("from", ""),
-                "date": item.get("timestamp"),
-                "content": "Contenido retenido por Emailnator (mensaje antiguo).",
-                "html": "",
-                "locked": True,
-            })
-            continue
-        try:
-            detail = _detail(item.get("id"))
-        except Exception:
-            detail = item
-        content = detail.get("content") or detail.get("body") or ""
         out.append({
-            "id": detail.get("id", item.get("id")),
-            "subject": detail.get("subject", item.get("subject", "")),
-            "from": detail.get("from", item.get("from", "")),
-            "from_email": detail.get("from", item.get("from", "")),
-            "date": detail.get("date", item.get("timestamp")),
-            "content": _text_from_html(content),
-            "html": "",
-            "locked": False,
+            "id": item.get("id"),
+            "subject": item.get("subject", ""),
+            "from": item.get("from", ""),
+            "from_email": item.get("from", ""),
+            "date": item.get("timestamp"),
+            "preview": _text_from_html(item.get("content") or item.get("body") or "")[:240],
+            "locked": bool(item.get("locked")),
         })
     return out
+
+
+def message(email, message_id):
+    """Fetch one full message, preserving HTML for browser rendering."""
+    _known(email)
+    detail = _detail(message_id)
+    content = detail.get("content") or detail.get("body") or ""
+    html = content if re.search(r"<\/?[a-z][^>]*>", content, re.I) else ""
+    return {
+        "id": detail.get("id", message_id),
+        "subject": detail.get("subject", ""),
+        "from": detail.get("from", ""),
+        "from_email": detail.get("from", ""),
+        "date": detail.get("date", detail.get("timestamp")),
+        "content": _text_from_html(content),
+        "html": html,
+        "locked": bool(detail.get("locked")),
+    }
 
 
 def delete(email):

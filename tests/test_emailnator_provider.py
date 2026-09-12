@@ -34,5 +34,21 @@ def test_messages_reads_list_and_detail(monkeypatch, tmp_path):
     })
     data = provider.messages("abc.def@gmail.com")
     assert data[0]["subject"] == "Hello"
-    assert data[0]["content"] == "Hi Juan"
-    assert "script" not in data[0]["content"]
+    assert data[0]["preview"] == ""
+
+
+def test_message_preserves_html(monkeypatch, tmp_path):
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "emails.db"))
+    provider._init()
+    import sqlite3
+    with sqlite3.connect(str(tmp_path / "emails.db")) as conn:
+        conn.execute("INSERT INTO emailnator_mailboxes VALUES (?, ?)", ("abc.def@gmail.com", 3))
+        conn.commit()
+    monkeypatch.setattr(provider, "_detail", lambda mid: {
+        "id": mid, "from": "Sender <sender@example.com>", "subject": "Hello",
+        "date": 2, "content": "<p>Hi <b>Juan</b></p><a href=\"https://example.com\">Abrir</a>",
+    })
+    data = provider.message("abc.def@gmail.com", "m1")
+    assert data["html"].startswith("<p>")
+    assert "href=\"https://example.com\"" in data["html"]
+    assert data["content"] == "Hi Juan\nAbrir"

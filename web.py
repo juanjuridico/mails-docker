@@ -14,7 +14,7 @@ HTML = r'''<!doctype html>
 body{font-family:system-ui,sans-serif;max-width:1000px;margin:40px auto;padding:0 18px;background:#f5f7fb;color:#172033}
 .card{background:white;border-radius:16px;padding:22px;margin:14px 0;box-shadow:0 5px 25px #0001}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 button{border:0;border-radius:10px;padding:10px 15px;background:#172033;color:white;cursor:pointer}button.danger{background:#a22}button:disabled{opacity:.5}
-.email{font-family:ui-monospace,monospace;font-size:1.05rem;padding:12px;background:#eef2ff;border-radius:10px;flex:1}.muted{color:#687386}.msg{border-top:1px solid #eee;padding:14px 0}.error{color:#a22}.ok{color:#176b3a}
+.email{font-family:ui-monospace,monospace;font-size:1.05rem;padding:12px;background:#eef2ff;border-radius:10px;flex:1}.email-body{overflow:auto;background:#fff;border-radius:10px;padding:12px}.email-body img{max-width:100%;height:auto}.email-body a{color:#1565c0}.muted{color:#687386}.msg{border-top:1px solid #eee;padding:14px 0}.error{color:#a22}.ok{color:#176b3a}
 </style></head><body><h1>Correos temporales</h1><p class="muted">Gmail temporal · @gmail.com sin API key</p>
 <div class="card"><div class="row"><button onclick="newMail()">+ Generar correo</button><button onclick="loadMails()">Actualizar</button><span id="status" class="muted"></span></div><p class="muted" id="mode">Inicializando…</p></div>
 <div id="mails"></div><div id="inbox"></div>
@@ -90,6 +90,19 @@ def messages_api(email):
             from browser_agent import read_inbox
             return jsonify({"ok": True, "data": read_inbox(email)})
         raise TempMailGAPIError("No hay proveedor disponible")
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 503
+
+
+@app.get("/api/emails/<path:email>/messages/<message_id>")
+def message_api(email, message_id):
+    try:
+        info = get_email_by_email(email)
+        if not info:
+            return jsonify({"ok": False, "error": "Correo no encontrado"}), 404
+        if info["provider"] == "emailnator":
+            return jsonify({"ok": True, "data": emailnator_provider.message(email, message_id)})
+        return jsonify({"ok": False, "error": "Proveedor no admite apertura individual"}), 404
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 503
 
